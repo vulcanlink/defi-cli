@@ -1,6 +1,7 @@
 import { Command, flags } from '@oclif/command'
 //@ts-ignore
 import inquirer from 'inquirer'
+import { join } from 'path'
 import credentials, { setCredentials } from '../utils/credentials'
 import defaultConfig from '../utils/defaultConfig'
 
@@ -32,7 +33,7 @@ export default class Config extends Command {
   static args = [{
     name: 'item',
     required: true,
-    options: ['session', 'networks', 'accounts', 'chainlink', 'uniswap', 'tokens', 'all'],
+    options: ['session', 'networks', 'accounts', 'chainlink', 'uniswap', 'tokens', 'all', 'path'],
   },
   { name: 'subcommand', required: true, options: ["view", "set"] }
   ]
@@ -42,7 +43,10 @@ export default class Config extends Command {
     const config = await credentials(this)
 
     try {
-      if (args.item === 'session') {
+      if (args.item === 'path') {
+        const configPath = join(this.config.configDir, 'config.json')
+        this.log(configPath)
+      } else if (args.item === 'session') {
         if (args.subcommand === 'view') {
           this.log(config.session)
         } else if (args.subcommand === 'set') {
