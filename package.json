@@ -1,0 +1,69 @@
+{
+  "name": "defi",
+  "description": "CLI to interact and deploy popular Ethereum DeFi DApps",
+  "version": "0.0.1",
+  "author": "Leo Vigna @leovigna",
+  "bin": {
+    "defi": "./bin/run"
+  },
+  "bugs": "https://github.com/leovigna/defi/issues",
+  "dependencies": {
+    "@chainlink/contracts": "^0.0.9",
+    "@oclif/command": "^1.8.0",
+    "@oclif/config": "^1.17.0",
+    "@oclif/plugin-help": "^3.2.0",
+    "fs-extra": "^9.0.1",
+    "inquirer": "^7.3.3",
+    "node-emoji": "^1.10.0",
+    "tslib": "^1.13.0",
+    "web3": "^1.2.11"
+  },
+  "devDependencies": {
+    "@oclif/dev-cli": "^1.22.2",
+    "@oclif/test": "^1.2.6",
+    "@types/chai": "^4.2.12",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^10.17.28",
+    "@types/node-emoji": "^1.8.1",
+    "chai": "^4.2.0",
+    "eslint": "^5.16.0",
+    "eslint-config-oclif": "^3.1.0",
+    "eslint-config-oclif-typescript": "^0.1.0",
+    "globby": "^10.0.2",
+    "mocha": "^5.2.0",
+    "nyc": "^14.1.1",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "files": [
+    "/bin",
+    "/lib",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json"
+  ],
+  "homepage": "https://github.com/leovigna/defi",
+  "keywords": [
+    "oclif"
+  ],
+  "license": "MIT",
+  "main": "lib/index.js",
+  "oclif": {
+    "commands": "./lib/commands",
+    "bin": "defi",
+    "plugins": [
+      "@oclif/plugin-help"
+    ]
+  },
+  "repository": "leovigna/defi",
+  "scripts": {
+    "postpack": "rm -f oclif.manifest.json",
+    "posttest": "eslint . --ext .ts --config .eslintrc",
+    "prepack": "rm -rf lib && tsc -b && oclif-dev manifest && oclif-dev readme",
+    "test": "nyc --extension .ts mocha --forbid-only \"test/**/*.test.ts\"",
+    "version": "oclif-dev readme && git add README.md"
+  },
+  "types": "lib/index.d.ts"
+}
