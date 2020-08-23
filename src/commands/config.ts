@@ -2,6 +2,8 @@ import { Command, flags } from '@oclif/command'
 //@ts-ignore
 import inquirer from 'inquirer'
 import { join } from 'path'
+import Web3 from 'web3'
+
 import credentials, { setCredentials } from '../utils/credentials'
 import defaultConfig from '../utils/defaultConfig'
 
@@ -27,7 +29,8 @@ export default class Config extends Command {
 
   static flags: any = {
     help: flags.help({ char: 'h' }),
-    default: flags.boolean({ description: 'set default config' })
+    default: flags.boolean({ description: 'set default config' }),
+    all: flags.boolean({ description: 'view full config' })
   }
 
   static args = [{
@@ -142,25 +145,103 @@ export default class Config extends Command {
       } else if (args.item === 'accounts') {
         const accounts = config.accounts
         if (args.subcommand === 'view') {
-          this.log(accounts)
+          if (flags.all) {
+            this.log(accounts)
+          } else {
+            const addressesByNetwork: any = {}
+            Object.entries(accounts).forEach(([networkId, networkAccounts]: [any, any]) => {
+              addressesByNetwork[networkId] = Object.keys(networkAccounts)
+            })
+            this.log(addressesByNetwork)
+          }
+
         } else if (args.subcommand === 'set') {
+
+          const networks = Object.values(config.networks).map((network: any) => {
+            return {
+              name: `${network.networkId} (${network.name})`,
+              value: network.networkId
+            }
+          })
+
+          const accountTypes = [
+            { name: 'Signing (generate)', value: 'generatePrivateKey' },
+            { name: 'Watch only (public key)', value: 'watchOnly' },
+            { name: 'Signing (private key)', value: 'inputPrivateKey' },
+            { name: 'HD Wallet (BIP-39', value: 'HDWallet' }
+          ]
+
           const answers = await inquirer
             .prompt([
               {
                 type: 'list',
+                name: 'accountType',
+                message: 'Select account type:',
+                choices: accountTypes,
+                default: accountTypes[0]
+              },
+              {
+                type: 'list',
                 name: 'networkId',
-                message: 'Enter network id:',
-                choices: Object.keys(config.networks),
+                message: 'Select network id:',
+                choices: networks,
                 default: config.session.networkId
               },
               {
                 type: 'input',
                 name: 'address',
-                message: 'Enter Address:'
+                message: 'Enter Address:',
+                when: (answers: any) => {
+                  return answers.accountType === 'watchOnly'
+                }
+              },
+              {
+                type: 'number',
+                name: 'generateCount',
+                message: 'How many accounts do you wish to create?',
+                default: 1,
+                when: (answers: any) => {
+                  return answers.accountType === 'generatePrivateKey'
+                }
+              },
+              {
+                type: 'password',
+                name: 'password',
+                message: 'Enter Password:',
+                when: (answers: any) => {
+                  return answers.accountType === 'generatePrivateKey'
+                }
+              },
+              {
+                type: 'password',
+                name: 'passwordConfirm',
+                message: 'Confirm Password:',
+                when: (answers: any) => {
+                  return answers.accountType === 'generatePrivateKey'
+                }
               }])
 
           if (!config.accounts[answers.networkId]) config.accounts[answers.networkId] = {}
-          config.accounts[answers.networkId][answers.address] = { address: answers.address }
+
+          if (answers.accountType === 'watchOnly') {
+            if (config.accounts[answers.networkId][answers.address]) throw new Error(`Account ${answers.address} exists already!`)
+            config.accounts[answers.networkId][answers.address] = { address: answers.address }
+          } else if (answers.accountType === 'generatePrivateKey') {
+            if (answers.password != answers.passwordConfirm) {
+              throw new Error('Passwords don\'t match!')
+            }
+
+            const web3 = new Web3()
+            web3.eth.accounts.wallet.create(answers.generateCount)
+            const accountsEncrypted = web3.eth.accounts.wallet.encrypt(answers.password)
+            web3.eth.accounts.wallet.clear();
+            accountsEncrypted.forEach((account) => {
+              config.accounts[answers.networkId]['0x' + account.address] = account
+            })
+            this.log('Account encrypted with password.\nStore accounts in JSON file recovery:')
+            this.log(accountsEncrypted)
+          }
+
           await setCredentials(this, config)
           this.log('Accounts configured.')
         }
