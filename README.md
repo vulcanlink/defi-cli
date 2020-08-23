@@ -30,6 +30,7 @@ USAGE
 <!-- commands -->
 * [`defi chainlink [FILE]`](#defi-chainlink-file)
 * [`defi config ITEM SUBCOMMAND`](#defi-config-item-subcommand)
+* [`defi eth SUBCOMMAND`](#defi-eth-subcommand)
 * [`defi hello [FILE]`](#defi-hello-file)
 * [`defi help [COMMAND]`](#defi-help-command)
 * [`defi tokens TOKEN SUBCOMMAND`](#defi-tokens-token-subcommand)
@@ -61,6 +62,7 @@ USAGE
 
 OPTIONS
   -h, --help  show CLI help
+  --all       view full config
   --default   set default config
 
 EXAMPLES
@@ -70,6 +72,20 @@ EXAMPLES
 ```
 
 _See code: [src/commands/config.ts](https://github.com/leovigna/defi/blob/v0.0.1/src/commands/config.ts)_
+
+## `defi eth SUBCOMMAND`
+
+Send and View Eth balance
+
+```
+USAGE
+  $ defi eth SUBCOMMAND
+
+OPTIONS
+  -h, --help  show CLI help
+```
+
+_See code: [src/commands/eth.ts](https://github.com/leovigna/defi/blob/v0.0.1/src/commands/eth.ts)_
 
 ## `defi hello [FILE]`
 

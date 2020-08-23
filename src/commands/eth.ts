@@ -2,6 +2,7 @@ import { Command, flags } from '@oclif/command'
 import Web3 from 'web3'
 //@ts-ignore
 import inquirer from 'inquirer'
+//@ts-ignore
 import Spinnies from 'spinnies'
 
 import credentials, { setCredentials } from '../utils/credentials'

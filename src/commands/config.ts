@@ -233,9 +233,9 @@ export default class Config extends Command {
 
             const web3 = new Web3()
             web3.eth.accounts.wallet.create(answers.generateCount)
-            const accountsEncrypted = web3.eth.accounts.wallet.encrypt(answers.password)
+            const accountsEncrypted: any = web3.eth.accounts.wallet.encrypt(answers.password)
             web3.eth.accounts.wallet.clear();
-            accountsEncrypted.forEach((account) => {
+            accountsEncrypted.forEach((account: any) => {
               config.accounts[answers.networkId]['0x' + account.address] = account
             })
             this.log('Account encrypted with password.\nStore accounts in JSON file recovery:')
