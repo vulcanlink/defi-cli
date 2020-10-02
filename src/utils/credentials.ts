@@ -3,7 +3,7 @@ import chalk from 'chalk'
 import { join } from 'path'
 //@ts-ignore
 import { pathExists, outputJSON, readJSON } from 'fs-extra'
-import defaultConfig from './defaultConfig'
+import defaultConfig, { Config } from './defaultConfig'
 
 export default async function credentials(ctx: any) {
   const config = join(ctx.config.configDir, 'config.json')
@@ -11,7 +11,7 @@ export default async function credentials(ctx: any) {
     await outputJSON(config, defaultConfig)
   }
 
-  const configData = await readJSON(config)
+  const configData: Config = await readJSON(config)
 
   if (!configData) {
     ctx.warn(
@@ -22,6 +22,14 @@ export default async function credentials(ctx: any) {
     )
     ctx.exit(0)
   }
+
+  // Fill empty network fields
+  Object.keys(configData.networks).forEach((networkId) => {
+    if (!configData.tokens[networkId]) configData.tokens[networkId] = {}
+    if (!configData.accounts[networkId]) configData.accounts[networkId] = {}
+    if (!configData.chainlink[networkId]) configData.chainlink[networkId] = {}
+    if (!configData.uniswap[networkId]) configData.uniswap[networkId] = {}
+  })
 
   return { ...configData }
 }
