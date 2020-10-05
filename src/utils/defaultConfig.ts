@@ -26,7 +26,7 @@ export interface Config {
   },
   chainlink: any,
   uniswap: any,
-  accounts: any
+  accounts: any, 
 }
 
 const defaultConfig: Config = {
