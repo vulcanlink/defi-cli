@@ -19,7 +19,7 @@ $ npm install -g defi
 $ defi COMMAND
 running command...
 $ defi (-v|--version|version)
-defi/0.0.1 linux-x64 node-v12.16.3
+defi/0.0.1 linux-x64 node-v10.22.0
 $ defi --help [COMMAND]
 USAGE
   $ defi COMMAND

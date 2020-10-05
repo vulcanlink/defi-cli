@@ -22,38 +22,35 @@ export default class Config extends Command {
   static description = 'Configure DeFi CLI'
 
   static examples = [
-    '$ defi config session set',
-    '$ defi config accounts view',
-    '$ defi config uniswap view',
+    '$ defi config session',
+    '$ defi config accounts',
+    '$ defi config networks',
   ]
 
   static flags: any = {
+    //--help flag
     help: flags.help({ char: 'h' }),
+    //--view flag
+    view: flags.boolean({ char: 'v', description: "logs current status in config"}, ),
     default: flags.boolean({ description: 'set default config' }),
-    all: flags.boolean({ description: 'view full config' })
-  }
+    all: flags.boolean({description: 'view full config' })
+  } 
 
   static args = [{
     name: 'item',
-    required: true,
-    options: ['session', 'networks', 'accounts', 'chainlink', 'uniswap', 'tokens', 'all', 'path'],
-  },
-  { name: 'subcommand', required: true, options: ["view", "set"] }
-  ]
+    options: ['session', 'networks', 'accounts', 'chainlink', 'uniswap', 'tokens', 'all', 'path']
+  }]
 
   async run() {
     const { args, flags }: any = this.parse(Config)
     const config = await credentials(this)
-
     try {
       if (args.item === 'path') {
         const configPath = join(this.config.configDir, 'config.json')
         this.log(configPath)
       } else if (args.item === 'session') {
-        if (args.subcommand === 'view') {
-          this.log(config.session)
-        } else if (args.subcommand === 'set') {
-          const answers = await inquirer
+          if(flags.view) { console.log(config.session) }
+          else { const answers = await inquirer
             .prompt([{
               type: 'list',
               name: 'networkId',
@@ -74,17 +71,13 @@ export default class Config extends Command {
           config.session = answers
           await setCredentials(this, config)
           this.log('Session configured.')
-
         }
 
       } else if (args.item === 'networks') {
-        const networks = config.networks
-        const networkNames = Object.values(networks).map((n: any) => n.name)
-        if (args.subcommand === 'view') {
-          this.log(config.networks)
-
-        } else if (args.subcommand === 'set') {
-          const answers = await inquirer
+          const networks = config.networks
+          const networkNames = Object.values(networks).map((n: any) => n.name)
+          if (flags.view) { console.log(config.networks) }
+          else { const answers = await inquirer
             .prompt([
               {
                 type: 'list',
@@ -144,19 +137,8 @@ export default class Config extends Command {
         }
       } else if (args.item === 'accounts') {
         const accounts = config.accounts
-        if (args.subcommand === 'view') {
-          if (flags.all) {
-            this.log(accounts)
-          } else {
-            const addressesByNetwork: any = {}
-            Object.entries(accounts).forEach(([networkId, networkAccounts]: [any, any]) => {
-              addressesByNetwork[networkId] = Object.keys(networkAccounts)
-            })
-            this.log(addressesByNetwork)
-          }
-
-        } else if (args.subcommand === 'set') {
-
+        if (flags.view) { this.log(config.accounts) } 
+        else { 
           const networks = Object.values(config.networks).map((network: any) => {
             return {
               name: `${network.networkId} (${network.name})`,
@@ -252,21 +234,29 @@ export default class Config extends Command {
       } else if (args.item === 'uniswap') {
 
       } else if (args.item === 'tokens') {
-
+          const answers = await inquirer
+              .prompt([{
+                type: 'list',
+                name: 'NetworkId',
+                message: 'Select networkId:',
+                choices: Object.keys(config.networks),
+                default: config.session.networkId
+              },
+              {
+                type: 'input',
+                name: 'Address',
+                message: 'Enter Address:',
+              },
       } else if (args.item === 'all') {
-        if (args.subcommand === 'view') {
-          this.log(config)
-        } else if (args.subcommand === 'set') {
-
-          if (flags.default) {
+          if (flags.view) { console.log(config)}
+          else if (flags.default) {
             await setCredentials(this, defaultConfig)
             this.log('Default config set.')
           } else {
             throw new Error('configure all Unimplemented!')
           }
-
-        }
       }
+      
 
     } catch (error) {
       this.error(error || 'A DeFi CLI error has occurred.', {
