@@ -1,9 +1,11 @@
 import { Command, flags } from '@oclif/command'
 import Web3 from 'web3'
 import chalk from 'chalk'
+import inquirer from 'inquirer'
 
 import IERC20 from '../contracts/ERC20Detailed.json'
 import credentials from '../utils/credentials'
+import { defaultCipherList } from 'constants'
 
 export default class Tokens extends Command {
   static description = 'Interact with ERC20 Tokens'
@@ -13,8 +15,8 @@ export default class Tokens extends Command {
   }
 
   static args = [
-    { name: 'token', required: true },
-    { name: 'subcommand', required: true, options: ["balance", "send"] }]
+    { name: 'subcommand', required: true, options: ["balance", "send"] },
+    { name: 'token'}]
 
   async run() {
     const { args, flags } = this.parse(Tokens)
@@ -28,7 +30,25 @@ export default class Tokens extends Command {
       )} to configure.`)
 
       const tokens = config.tokens[session.networkId]
-      const token = tokens[args.token] || Object.values(tokens).find((token: any) => token.name === args.token) || { address: args.token }
+      let inputToken;
+      console.log(config.tokens)
+      if (args.token == null) {
+        inputToken = await inquirer
+        .prompt([
+          {
+            type: 'list',
+            name: 'tokenSelect',
+            message: 'Select a token',
+            choices: Object.keys(config.tokens)
+          }
+        ])
+      }
+
+      else {
+        inputToken = tokens[args.token] || Object.values(tokens).find((token: any) => token.name === args.token) || { address: args.token } 
+      }
+
+      const token = inputToken;
 
       const web3 = new Web3(network.rpc)
 

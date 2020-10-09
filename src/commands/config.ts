@@ -1,4 +1,5 @@
 import { Command, flags } from '@oclif/command'
+import { lookupService } from 'dns'
 //@ts-ignore
 import inquirer from 'inquirer'
 import { join } from 'path'
@@ -49,7 +50,7 @@ export default class Config extends Command {
         const configPath = join(this.config.configDir, 'config.json')
         this.log(configPath)
       } else if (args.item === 'session') {
-          if(flags.view) { console.log(config.session) }
+          if (flags.view) { console.log(config.session) }
           else { const answers = await inquirer
             .prompt([{
               type: 'list',
@@ -150,7 +151,7 @@ export default class Config extends Command {
             { name: 'Signing (generate)', value: 'generatePrivateKey' },
             { name: 'Watch only (public key)', value: 'watchOnly' },
             { name: 'Signing (private key)', value: 'inputPrivateKey' },
-            { name: 'HD Wallet (BIP-39', value: 'HDWallet' }
+            { name: 'HD Wallet (BIP-39)', value: 'HDWallet' }
           ]
 
           const answers = await inquirer
@@ -234,19 +235,39 @@ export default class Config extends Command {
       } else if (args.item === 'uniswap') {
 
       } else if (args.item === 'tokens') {
+        if (flags.view) { this.log(config.tokens) } 
+        else {
+          const tokens = config.tokens
           const answers = await inquirer
               .prompt([{
                 type: 'list',
-                name: 'NetworkId',
+                name: 'networkId',
                 message: 'Select networkId:',
-                choices: Object.keys(config.networks),
-                default: config.session.networkId
+                choices: Object.keys(config.networks)
               },
               {
                 type: 'input',
-                name: 'Address',
-                message: 'Enter Address:',
+                name: 'name',
+                message: 'Enter Token Name'
               },
+              {
+              type: 'input',
+              name: 'address',
+              message: 'Enter Token Address'
+              }
+            ])
+          
+          const web3 = new Web3()
+          const contract_json = require('../contracts/ERC20Detailed.json')
+          const abi = contract_json.abi
+
+          const tokenContract = new web3.eth.Contract(abi, answers.address)
+
+          config.tokens[answers.networkId] [answers.address] = { address: answers.address, name: answers.name }
+
+          await setCredentials(this, config)
+          this.log('Token configured')
+        }
       } else if (args.item === 'all') {
           if (flags.view) { console.log(config)}
           else if (flags.default) {
@@ -256,6 +277,7 @@ export default class Config extends Command {
             throw new Error('configure all Unimplemented!')
           }
       }
+    
       
 
     } catch (error) {
