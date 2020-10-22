@@ -3,7 +3,6 @@ import Web3 from 'web3'
 import chalk from 'chalk'
 import inquirer from 'inquirer'
 
-import IERC20 from '../contracts/ERC20Detailed.json'
 import credentials from '../utils/credentials'
 import { defaultCipherList } from 'constants'
 
@@ -11,7 +10,7 @@ export default class Tokens extends Command {
   static description = 'Interact with ERC20 Tokens'
 
   static flags: any = {
-    help: flags.help({ char: 'h' })
+    help: flags.help({ char: 'h' }) 
   }
 
   static args = [
@@ -31,43 +30,73 @@ export default class Tokens extends Command {
 
       const tokens = config.tokens[session.networkId]
       let inputToken;
-      console.log(config.tokens)
+
       if (args.token == null) {
-        inputToken = await inquirer
+        let answers = await inquirer
         .prompt([
           {
             type: 'list',
             name: 'tokenSelect',
             message: 'Select a token',
-            choices: Object.keys(config.tokens)
+            choices: Object.keys(tokens)
           }
         ])
+        inputToken = { address: answers.tokenSelect }
       }
-
       else {
         inputToken = tokens[args.token] || Object.values(tokens).find((token: any) => token.name === args.token) || { address: args.token } 
       }
 
-      const token = inputToken;
-
+      const token = inputToken
       const web3 = new Web3(network.rpc)
+      const ERC20Detailed = require('../contracts/ERC20Detailed.json')
 
       //@ts-ignore
-      const TokenContract = new web3.eth.Contract(IERC20.abi, token.address)
+      const TokenContract = new web3.eth.Contract(ERC20Detailed.abi, token.address)
+      
       const [balanceRaw, symbol, decimals] = await Promise.all([
         TokenContract.methods.balanceOf(session.account).call(),
         TokenContract.methods.symbol().call(),
         TokenContract.methods.decimals().call()
       ])
 
-      let balance;
-      try {
-        balance = parseInt(balanceRaw) / Math.pow(10, parseInt(decimals))
-      } catch (error) {
-        balance = web3.utils.toBN(balanceRaw).div(web3.utils.toBN('10').pow(web3.utils.toBN(decimals)))
+      if (args.subcommand == 'balance') {
+        let balance;
+        try {
+          balance = parseInt(balanceRaw) / Math.pow(10, parseInt(decimals))
+        } catch (error) {
+          balance = web3.utils.toBN(balanceRaw).div(web3.utils.toBN('10').pow(web3.utils.toBN(decimals)))
+        }
+
+        this.log(`balance: ${balance} ${symbol}`)
       }
 
-      this.log(`balance: ${balance} ${symbol}`)
+      else if (args.subcommand == 'send') {
+        let answers = await inquirer
+          .prompt ([
+            {
+              type: 'number',
+              name: 'amount',
+              message: 'Enter amount to send: '
+            },
+            {
+              type: 'input', 
+              name: 'fromAddress', 
+              message: 'Enter address you are sending from: '
+            },
+            {
+              type: 'input', 
+              name: 'toAddress', 
+              message: 'Enter address you are sending to: '
+            }
+          ])
+        let amount = web3.utils.toBN(answers.amount)
+
+        let value = amount.mul(web3.utils.toBN(10).pow(web3.utils.toBN(decimals)))
+        TokenContract.methods.transfer(answers.toAddress, value).send({from: answers.fromAddress}).on('transactionHash', function(hash) {
+          console.log(hash)
+        })
+      }
     } catch (error) {
       this.error(error || 'A DeFi CLI error has occurred.', {
         exit: 1,
@@ -75,3 +104,4 @@ export default class Tokens extends Command {
     }
   }
 }
+

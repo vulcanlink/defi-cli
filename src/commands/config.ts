@@ -4,6 +4,7 @@ import { lookupService } from 'dns'
 import inquirer from 'inquirer'
 import { join } from 'path'
 import Web3 from 'web3'
+import chalk from 'chalk'
 
 import credentials, { setCredentials } from '../utils/credentials'
 import defaultConfig from '../utils/defaultConfig'
@@ -32,7 +33,8 @@ export default class Config extends Command {
     //--help flag
     help: flags.help({ char: 'h' }),
     //--view flag
-    view: flags.boolean({ char: 'v', description: "logs current status in config"}, ),
+    view: flags.boolean({ char: 'v', description: "logs current status in config"}),
+    remove: flags.boolean({ char: 'r', description: "remove network"}),
     default: flags.boolean({ description: 'set default config' }),
     all: flags.boolean({description: 'view full config' })
   } 
@@ -235,9 +237,9 @@ export default class Config extends Command {
       } else if (args.item === 'uniswap') {
 
       } else if (args.item === 'tokens') {
-        if (flags.view) { this.log(config.tokens) } 
+        //@ts-ignore
+        if (flags.view) { this.log(config.tokens) }
         else {
-          const tokens = config.tokens
           const answers = await inquirer
               .prompt([{
                 type: 'list',
@@ -256,12 +258,6 @@ export default class Config extends Command {
               message: 'Enter Token Address'
               }
             ])
-          
-          const web3 = new Web3()
-          const contract_json = require('../contracts/ERC20Detailed.json')
-          const abi = contract_json.abi
-
-          const tokenContract = new web3.eth.Contract(abi, answers.address)
 
           config.tokens[answers.networkId] [answers.address] = { address: answers.address, name: answers.name }
 
