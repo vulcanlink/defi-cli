@@ -90,13 +90,19 @@ export default class Tokens extends Command {
               message: 'Enter address you are sending to: '
             }
           ])
-        let amount = web3.utils.toBN(answers.amount)
+        const amount = web3.utils.toBN(answers.amount)
+        const adjAmount = web3.utils.toHex(amount.div(web3.utils.toBN(10).pow(web3.utils.toBN(decimals))))
 
-        let value = amount.mul(web3.utils.toBN(10).pow(web3.utils.toBN(decimals)))
-        TokenContract.methods.transfer(answers.toAddress, value).send({from: answers.fromAddress}).on('transactionHash', function(hash) {
-          console.log(hash)
-        })
+        TokenContract.methods.transfer(
+          answers.toAddress, 
+          adjAmount
+          ).send({from: answers.fromAddress})
+          //@ts-ignore
+          .once('transactionHash', (hash) => { console.log(hash) })
+          //@ts-ignore
+          .once('receipt', (receipt) => { console.log(receipt) })
       }
+        
     } catch (error) {
       this.error(error || 'A DeFi CLI error has occurred.', {
         exit: 1,

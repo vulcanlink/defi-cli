@@ -4,7 +4,7 @@ import { lookupService } from 'dns'
 import inquirer from 'inquirer'
 import { join } from 'path'
 import Web3 from 'web3'
-import chalk from 'chalk'
+import {help} from '../utils/flags'
 
 import credentials, { setCredentials } from '../utils/credentials'
 import defaultConfig from '../utils/defaultConfig'
@@ -31,10 +31,9 @@ export default class Config extends Command {
 
   static flags: any = {
     //--help flag
-    help: flags.help({ char: 'h' }),
+    help: help,
     //--view flag
     view: flags.boolean({ char: 'v', description: "logs current status in config"}),
-    remove: flags.boolean({ char: 'r', description: "remove network"}),
     default: flags.boolean({ description: 'set default config' }),
     all: flags.boolean({description: 'view full config' })
   } 
