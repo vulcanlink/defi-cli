@@ -46,6 +46,13 @@ export default class Config extends Command {
   async run() {
     const { args, flags }: any = this.parse(Config)
     const config = await credentials(this)
+    const networksView = Object.values(config.networks).map((network: any) => {
+      return {
+        name: `${network.networkId} (${network.name})`,
+        value: network.networkId
+      }
+    })
+
     try {
       if (args.item === 'path') {
         const configPath = join(this.config.configDir, 'config.json')
@@ -57,7 +64,7 @@ export default class Config extends Command {
               type: 'list',
               name: 'networkId',
               message: 'Select networkId:',
-              choices: Object.keys(config.networks),
+              choices: networksView,
               default: config.session.networkId
             },
             {
@@ -138,16 +145,8 @@ export default class Config extends Command {
           this.log('Networks configured.')
         }
       } else if (args.item === 'accounts') {
-        const accounts = config.accounts
         if (flags.view) { this.log(config.accounts) } 
         else { 
-          const networks = Object.values(config.networks).map((network: any) => {
-            return {
-              name: `${network.networkId} (${network.name})`,
-              value: network.networkId
-            }
-          })
-
           const accountTypes = [
             { name: 'Signing (generate)', value: 'generatePrivateKey' },
             { name: 'Watch only (public key)', value: 'watchOnly' },
@@ -168,7 +167,7 @@ export default class Config extends Command {
                 type: 'list',
                 name: 'networkId',
                 message: 'Select network id:',
-                choices: networks,
+                choices: networksView,
                 default: config.session.networkId
               },
               {
@@ -244,17 +243,17 @@ export default class Config extends Command {
                 type: 'list',
                 name: 'networkId',
                 message: 'Select networkId:',
-                choices: Object.keys(config.networks)
+                choices: networksView
               },
               {
                 type: 'input',
                 name: 'name',
-                message: 'Enter Token Name'
+                message: 'Enter Token Name:'
               },
               {
-              type: 'input',
-              name: 'address',
-              message: 'Enter Token Address'
+                type: 'input',
+                name: 'address',
+                message: 'Enter Token Address:'
               }
             ])
 

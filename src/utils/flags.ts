@@ -6,14 +6,13 @@ export const help = flags.help({
 }
 )
 
-export const networkset = flags.string({
+export const network = flags.string({
   char: 'n', 
   description: 'set the network',
 }
 )
 
-export const from = flags.string({
-  char: 'f', 
+export const from = flags.string({ 
   description: 'set account sending from',
 }
 )
@@ -23,13 +22,10 @@ export const to = flags.string({
 }
 )
 
-export const network = flags.string({
-  char: 'n', 
-  description: 'set the network',
-}
-)
-
 export const gasprice = flags.integer({
-  char: 'g',
   description: 'set gas price'
+})
+
+export const token = flags.string({
+  description: 'select a token'
 })
